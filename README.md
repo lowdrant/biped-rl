@@ -1,2 +1,2 @@
 # biped-rl
-planar biped learn-to-walksimulation  experiments
+planar biped learn-to-walk simulation  experiments

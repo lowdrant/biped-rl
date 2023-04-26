@@ -29,9 +29,15 @@ def ang2cpx(a):
 
 class Biped:
     """Planar biped dynamics/kinematics class
-    Variable Definitions:
-        x -- 6x1 -- state vector: (x, y, theta, xdot, ydot, omega)
-        r -- 4x1 -- shape vector: (L1, L2, R1, R2)
+    INPUTS:
+        ell -- scalar -- link length
+        m -- scalar -- link mass
+
+    Mechanical Definitions:
+        state vector -- 6x1 -- (x, y, theta, xdot, ydot, omega)
+        shape vector -- 4x1 -- link angles: (L1, L2, R1, R2)
+        base configuration -- body centered + aligned with world-frame,
+                              all links going straight down (eg. -1j)
     """
 
     def __init__(self, ell, m):
@@ -61,7 +67,7 @@ class Biped:
         """
         raise NotImplementedError
 
-    def _2w(self, x, r):
+    def _2w(self, x, r, return_body=False):
         """get world-frame joint coords
         INPUTS:
             x -- state vector
@@ -69,15 +75,13 @@ class Biped:
         OUTPUTS:
             array of joint xy coords: [body, L1, L2, R1, R2]
         """
-        x, r = asarray(x), asarray(r)
-        o = x[0] + 1j * x[1]
-        oang = ang2cpx(x[2])
+        # link rotations
         c = ang2cpx(r)
-
         cfg = self.basecfg * asarray([c[0], c[0] * c[1], c[2], c[2] * c[3]])
-        cfg *= oang
+        cfg *= ang2cpx(x[2])  # body origin rotation
+        # link translations
         wcfg = asarray([0, cfg[0], cfg[0] + cfg[1], cfg[2], cfg[2] + cfg[3]])
-        wcfg += o
+        wcfg += x[0] + 1j * x[1]  # body origin translation
         return wcfg
 
     def plot(self, x, r, ax=None):
