@@ -67,7 +67,18 @@ class Biped:
         """
         raise NotImplementedError
 
-    def _2w(self, x, r, return_body=False):
+    def _midpts(self, x, r):
+        """get link midpts in world frame"""
+        wcfg = self._2w(x, r)
+        midpts = diff(wcfg) / 2 + wcfg[:-1]  # links are almost in order
+        midpts[2] = (wcfg[3] - wcfg[0]) / 2 + wcfg[0]  # correct body-r1 diff
+        return midpts
+
+    def _com(self, x, r):
+        """com of biped"""
+        return mean(self._midpts(x, r))
+
+    def _2w(self, x, r):
         """get world-frame joint coords
         INPUTS:
             x -- state vector
@@ -90,6 +101,8 @@ class Biped:
         wcfg = self._2w(x, r)
         ax.plot(*cpx2cart(wcfg[:3]), '.-')
         ax.plot(*cpx2cart(wcfg[[0, 3, 4]]), '.-')
+        ax.plot(*cpx2cart(self._com(x, r)), 'X', c='k', ms=10)
+        ax.plot(*cpx2cart(self._midpts(x, r)), '.', c='tab:green', ms=10)
         return ax
 
 
@@ -106,7 +119,7 @@ if __name__ == '__main__':
     ax.grid()
     ax.set_aspect('equal')
     ttlstr = 'o=' + str(around(x[:3], 2)) + ';  ' + 'r=' + str(around(r, 2))
-    ax.set_title(ttlstr)
+    ax.set_title('Kinematics Test:\n' + ttlstr)
 
     try:
         get_ipython()
